@@ -1,6 +1,12 @@
 import './style.css';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
-import { getPublicGrades, getPublishedMaterials, getTeacherProfile, getTeacherSummary } from './lib/data.js';
+import {
+  getPublicGrades,
+  getPublishedSubjects,
+  getPublishedMaterials,
+  getTeacherProfile,
+  getTeacherSummary
+} from './lib/data.js';
 
 const root = document.querySelector('#app');
 const state = { mode: 'student', user: null, teacher: null, grade: null, busy: false };
@@ -95,18 +101,137 @@ function gradeGroup(title, subtitle, grades) {
   return `<section class="grade-group"><div class="group-heading"><div><h2>${title}</h2><p>${subtitle}</p></div><span class="group-count">${grades.length} kelas</span></div><div class="grade-grid">${grades.map((grade) => `<button class="grade-card" data-grade="${escapeHtml(grade.id)}" data-name="${escapeHtml(grade.name)}"><span class="grade-number">${escapeHtml(grade.grade_number)}</span><strong>${escapeHtml(grade.name)}</strong><small>Lihat materi <i class="fa-solid fa-arrow-right"></i></small></button>`).join('') || '<p class="empty-state">Belum ada kelas aktif.</p>'}</div></section>`;
 }
 
+
 async function openGrade(gradeId, gradeName) {
   state.grade = { id: gradeId, name: gradeName };
-  appShell(`<section class="page-heading"><button class="btn btn-light" id="back-grades"><i class="fa-solid fa-arrow-left"></i> Semua kelas</button><span class="eyebrow">${escapeHtml(gradeName)}</span><h1>Materi pembelajaran</h1></section><div id="materials" class="materials-grid"><div class="loading-card"><i class="fa-solid fa-spinner fa-spin"></i> Memuat materi...</div></div>`);
-  root.querySelector('#back-grades').addEventListener('click', () => { state.grade = null; renderStudent(); });
+
+  appShell(`
+    <section class="page-heading">
+      <button class="btn btn-light" id="back-grades">
+        <i class="fa-solid fa-arrow-left"></i> Semua kelas
+      </button>
+      <span class="eyebrow">${escapeHtml(gradeName)}</span>
+      <h1>Pilih Mata Pelajaran 📚</h1>
+      <p>Yuk, pilih pelajaran yang ingin kamu pelajari!</p>
+    </section>
+    <div id="subjects" class="grade-grid">
+      <div class="loading-card">
+        <i class="fa-solid fa-spinner fa-spin"></i> Memuat mata pelajaran...
+      </div>
+    </div>
+  `);
+
+  root.querySelector('#back-grades').addEventListener('click', () => {
+    state.grade = null;
+    renderStudent();
+  });
+
   try {
-    const materials = await getPublishedMaterials(gradeId);
-    const list = root.querySelector('#materials');
-    list.innerHTML = materials.map((item) => `<article class="material-card"><div class="material-icon"><i class="fa-solid fa-book-open-reader"></i></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml((item.content || '').slice(0, 160) || 'Belum ada ringkasan materi.')}</p></article>`).join('') || '<div class="empty-state">Belum ada materi yang dipublikasikan untuk kelas ini.</div>';
+    const subjects = await getPublishedSubjects(gradeId);
+    const list = root.querySelector('#subjects');
+
+    list.innerHTML = subjects.map((subject) => `
+      <button class="grade-card subject-card"
+        data-subject="${escapeHtml(subject.id)}"
+        data-name="${escapeHtml(subject.name)}">
+        <span class="grade-number">
+          <i class="fa-solid fa-book-open"></i>
+        </span>
+        <strong>${escapeHtml(subject.name)}</strong>
+        <small>
+          ${escapeHtml(subject.description || 'Ayo mulai belajar!')}
+          <i class="fa-solid fa-arrow-right"></i>
+        </small>
+      </button>
+    `).join('') || `
+      <div class="empty-state">
+        Belum ada mata pelajaran yang dipublikasikan untuk kelas ini.
+      </div>
+    `;
+
+    list.querySelectorAll('[data-subject]').forEach((button) => {
+      button.addEventListener('click', () => {
+        openSubject(
+          button.dataset.subject,
+          button.dataset.name
+        );
+      });
+    });
+
   } catch (error) {
-    root.querySelector('#materials').innerHTML = `<div class="notice notice-error">${escapeHtml(error.message)}</div>`;
+    root.querySelector('#subjects').innerHTML = `
+      <div class="notice notice-error">
+        ${escapeHtml(error.message)}
+      </div>
+    `;
   }
 }
+
+
+async function openSubject(subjectId, subjectName) {
+  const gradeId = state.grade.id;
+  const gradeName = state.grade.name;
+
+  appShell(`
+    <section class="page-heading">
+      <button class="btn btn-light" id="back-subjects">
+        <i class="fa-solid fa-arrow-left"></i> Mata Pelajaran
+      </button>
+      <span class="eyebrow">
+        ${escapeHtml(gradeName)} · ${escapeHtml(subjectName)}
+      </span>
+      <h1>Materi Pembelajaran ✨</h1>
+      <p>Pilih materi yang ingin kamu pelajari.</p>
+    </section>
+
+    <div id="materials" class="materials-grid">
+      <div class="loading-card">
+        <i class="fa-solid fa-spinner fa-spin"></i> Memuat materi...
+      </div>
+    </div>
+  `);
+
+  root.querySelector('#back-subjects').addEventListener('click', () => {
+    openGrade(gradeId, gradeName);
+  });
+
+  try {
+    const materials = await getPublishedMaterials(gradeId);
+
+    const subjectMaterials = materials.filter(
+      (item) => item.subject_id === subjectId
+    );
+
+    const list = root.querySelector('#materials');
+
+    list.innerHTML = subjectMaterials.map((item) => `
+      <article class="material-card">
+        <div class="material-icon">
+          <i class="fa-solid fa-book-open-reader"></i>
+        </div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>
+          ${escapeHtml(
+            (item.content || '').slice(0, 160) ||
+            'Belum ada ringkasan materi.'
+          )}
+        </p>
+      </article>
+    `).join('') || `
+      <div class="empty-state">
+        Belum ada materi untuk mata pelajaran ini.
+      </div>
+    `;
+
+  } catch (error) {
+    root.querySelector('#materials').innerHTML = `
+      <div class="notice notice-error">
+        ${escapeHtml(error.message)}
+      </div>
+    `;
+  }
+}
+
 
 async function renderTeacher() {
   if (!isSupabaseConfigured) {
