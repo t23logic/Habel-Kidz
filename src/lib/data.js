@@ -29,7 +29,7 @@ export async function getPublishedMaterials(gradeId) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.');
   const { data, error } = await supabase
     .from('materials')
-    .select('id, title, content, image_path, created_at')
+    .select('id, subject_id, title, content, image_path, created_at')
     .eq('grade_id', gradeId)
     .eq('is_published', true)
     .order('created_at', { ascending: false });
