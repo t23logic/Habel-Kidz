@@ -11,6 +11,20 @@ export async function getPublicGrades() {
   return data ?? [];
 }
 
+export async function getPublishedSubjects(gradeId) {
+  if (!supabase) throw new Error('Supabase belum dikonfigurasi.');
+
+  const { data, error } = await supabase
+    .from('subjects')
+    .select('id, name, description, sort_order')
+    .eq('grade_id', gradeId)
+    .eq('is_published', true)
+    .order('sort_order');
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getPublishedMaterials(gradeId) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.');
   const { data, error } = await supabase
