@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habel Kidz - Kuis Interaktif & Materi Belajar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Fredoka & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #f472b6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Floating Cloud Animations */
+        @keyframes floatCloud {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 150px)); }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .cloud-1 {
+            position: absolute;
+            top: 20px;
+            left: -100px;
+            animation: floatCloud 28s linear infinite;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cloud-2 {
+            position: absolute;
+            top: 120px;
+            left: -150px;
+            animation: floatCloud 38s linear infinite;
+            animation-delay: -10s;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-card {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        .bouncing-icon {
+            animation: bounceSlow 2s ease-in-out infinite;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col min-h-screen relative">
+
+    <!-- Animated Background Clouds -->
+    <div class="cloud-1 text-white text-5xl sm:text-7xl"><i class="fa-solid fa-cloud"></i></div>
+    <div class="cloud-2 text-white text-4xl sm:text-6xl"><i class="fa-solid fa-cloud"></i></div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-lg px-4 py-3 border-b-4 border-pink-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="app.goHome()">
+                <div class="w-12 h-12 bg-gradient-to-tr from-amber-400 via-pink-500 to-indigo-500 rounded-3xl flex items-center justify-center text-white text-2xl font-black shadow-lg bouncing-icon">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent drop-shadow-sm">Habel Kidz</h1>
+                    <p class="text-[11px] text-purple-600 font-extrabold tracking-wider uppercase">✨ Belajar Seru SD & SMP ✨</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="app.toggleAdminMode()" id="admin-mode-btn" class="px-4 py-2.5 rounded-2xl text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer bg-amber-400 hover:bg-amber-500 text-slate-900 border-2 border-amber-300">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm"></i> <span id="admin-mode-text">Mode Guru: Aktif</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 z-10" id="app-content">
+        <!-- Rendered via JavaScript -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white/90 backdrop-blur-md py-4 text-center text-xs text-purple-700 font-extrabold border-t-2 border-pink-200 mt-auto z-10 shadow-inner">
+        🎈 Habel Kidz &copy; 2026 &bull; Belajar Ceria, Kreatif, dan Penuh Warna (Landscape Optimized) 🌈
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-2xl font-black text-sm text-white flex items-center gap-3 border-2 border-white">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toast-message">Notifikasi</span>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-white to-rose-50 rounded-3xl max-w-md w-full p-6 shadow-2xl border-4 border-rose-400 text-center animate-bounce-short">
+            <div class="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto text-2xl mb-4 shadow">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirm-modal-title" class="text-xl font-black text-slate-800 mb-2">Konfirmasi Hapus</h3>
+            <p id="confirm-modal-text" class="text-xs sm:text-sm font-semibold text-slate-600 mb-6">Apakah Anda yakin ingin menghapus item ini?</p>
+            <div class="flex gap-3 justify-center">
+                <button type="button" id="confirm-modal-cancel" class="px-5 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-xs cursor-pointer shadow">Batal</button>
+                <button type="button" id="confirm-modal-submit" class="px-6 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-black text-xs cursor-pointer shadow-lg">Ya, Hapus!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Folder / Materi -->
+    <div id="folder-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gradient-to-br from-white to-sky-50 rounded-3xl max-w-lg w-full p-6 shadow-2xl border-4 border-sky-400 my-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b-2 border-sky-100">
+                <h3 id="folder-modal-title" class="font-black text-xl text-indigo-700 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-pink-500"></i> Tambah Materi Baru</h3>
+                <button type="button" onclick="app.closeFolderModal()" class="w-9 h-9 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-600 flex items-center justify-center font-bold shadow">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="folder-form" onsubmit="app.saveFolder(event)" class="space-y-4">
+                <input type="hidden" id="folder-edit-id">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">📚 Judul Materi / Bab</label>
+                    <input type="text" id="folder-title-input" required placeholder="Contoh: Pecahan Sederhana yang Seru" class="w-full px-4 py-3 rounded-2xl border-2 border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-300 text-sm font-semibold bg-white shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">💡 Isi / Ringkasan Materi</label>
+                    <textarea id="folder-material-input" rows="5" placeholder="Tulis penjelasan materi berwarna di sini..." class="w-full px-4 py-3 rounded-2xl border-2 border-sky-200 focus:outline-none focus:ring-4 focus:ring-sky-300 text-sm font-semibold bg-white shadow-inner"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">🖼️ Unggah Gambar Materi dari Galeri (Opsional)</label>
+                    <input type="file" id="folder-image-input" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-black file:bg-pink-100 file:text-pink-600 cursor-pointer shadow-sm">
+                    <div id="folder-image-preview-container" class="mt-2 hidden">
+                        <img id="folder-image-preview" class="h-28 rounded-2xl object-contain border-4 border-pink-300 shadow-md mx-auto">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t-2 border-sky-100">
+                    <button type="button" onclick="app.closeFolderModal()" class="px-5 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-xs cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-xs shadow-lg transform active:scale-95 transition">✨ Simpan Materi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Soal Kuis -->
+    <div id="question-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gradient-to-br from-white to-pink-50 rounded-3xl max-w-xl w-full p-6 shadow-2xl border-4 border-pink-400 my-auto max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b-2 border-pink-100">
+                <h3 id="question-modal-title" class="font-black text-xl text-pink-700 flex items-center gap-2"><i class="fa-solid fa-gamepad text-indigo-500"></i> Tambah Soal Kuis</h3>
+                <button type="button" onclick="app.closeQuestionModal()" class="w-9 h-9 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-600 flex items-center justify-center font-bold shadow">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="question-form" onsubmit="app.saveQuestion(event)" class="space-y-4">
+                <input type="hidden" id="question-edit-id">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">🎮 Tipe Soal</label>
+                    <select id="question-type-input" onchange="app.toggleQuestionTypeFields()" class="w-full px-4 py-3 rounded-2xl border-2 border-pink-200 focus:outline-none focus:ring-4 focus:ring-pink-300 text-sm font-black bg-white shadow-inner text-indigo-700">
+                        <option value="mc">Pilihan Ganda ✨</option>
+                        <option value="sa">Isian Singkat / Essay ✍️</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">❓ Pertanyaan / Soal</label>
+                    <textarea id="question-text-input" rows="3" required placeholder="Tuliskan pertanyaan seru di sini..." class="w-full px-4 py-3 rounded-2xl border-2 border-pink-200 focus:outline-none focus:ring-4 focus:ring-pink-300 text-sm font-semibold bg-white shadow-inner"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1">🖼️ Unggah Gambar Soal dari Galeri (Opsional)</label>
+                    <input type="file" id="question-image-input" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-black file:bg-sky-100 file:text-sky-600 cursor-pointer shadow-sm">
+                    <div id="question-image-preview-container" class="mt-2 hidden">
+                        <img id="question-image-preview" class="h-24 rounded-2xl object-contain border-4 border-sky-300 shadow-md mx-auto">
+                    </div>
+                </div>
+
+                <!-- Pilihan Ganda Container (A, B, C, D) -->
+                <div id="mc-options-container" class="space-y-3 bg-pink-50/80 p-4 rounded-3xl border-2 border-pink-200 shadow-inner">
+                    <label class="block text-xs font-black text-pink-800 mb-2">⭐ Pilihan Jawaban (A, B, C, D) & Gambar Pilihan</label>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-white p-3.5 rounded-2xl border-2 border-pink-200 space-y-2 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="correct-mc" value="0" checked class="w-5 h-5 text-pink-600 cursor-pointer">
+                                <span class="font-black text-sm text-pink-700 w-6">A.</span>
+                                <input type="text" id="option-0" placeholder="Teks Pilihan A" class="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold bg-white focus:border-pink-500 focus:outline-none">
+                            </div>
+                            <div class="flex items-center gap-2 pl-8">
+                                <label class="text-[11px] font-black text-slate-500"><i class="fa-solid fa-image text-indigo-500"></i> Gambar A:</label>
+                                <input type="file" id="option-img-0" accept="image/*" onchange="app.handleOptionImageUpload(0, event)" class="text-[10px] text-slate-500 cursor-pointer">
+                            </div>
+                            <div id="option-img-preview-container-0" class="pl-8 hidden">
+                                <img id="option-img-preview-0" class="h-16 rounded-xl object-contain border-2 border-pink-300">
+                                <button type="button" onclick="app.removeOptionImage(0)" class="text-rose-500 text-xs font-black ml-2 hover:underline">Hapus Gambar</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3.5 rounded-2xl border-2 border-pink-200 space-y-2 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="correct-mc" value="1" class="w-5 h-5 text-pink-600 cursor-pointer">
+                                <span class="font-black text-sm text-pink-700 w-6">B.</span>
+                                <input type="text" id="option-1" placeholder="Teks Pilihan B" class="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold bg-white focus:border-pink-500 focus:outline-none">
+                            </div>
+                            <div class="flex items-center gap-2 pl-8">
+                                <label class="text-[11px] font-black text-slate-500"><i class="fa-solid fa-image text-indigo-500"></i> Gambar B:</label>
+                                <input type="file" id="option-img-1" accept="image/*" onchange="app.handleOptionImageUpload(1, event)" class="text-[10px] text-slate-500 cursor-pointer">
+                            </div>
+                            <div id="option-img-preview-container-1" class="pl-8 hidden">
+                                <img id="option-img-preview-1" class="h-16 rounded-xl object-contain border-2 border-pink-300">
+                                <button type="button" onclick="app.removeOptionImage(1)" class="text-rose-500 text-xs font-black ml-2 hover:underline">Hapus Gambar</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3.5 rounded-2xl border-2 border-pink-200 space-y-2 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="correct-mc" value="2" class="w-5 h-5 text-pink-600 cursor-pointer">
+                                <span class="font-black text-sm text-pink-700 w-6">C.</span>
+                                <input type="text" id="option-2" placeholder="Teks Pilihan C" class="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold bg-white focus:border-pink-500 focus:outline-none">
+                            </div>
+                            <div class="flex items-center gap-2 pl-8">
+                                <label class="text-[11px] font-black text-slate-500"><i class="fa-solid fa-image text-indigo-500"></i> Gambar C:</label>
+                                <input type="file" id="option-img-2" accept="image/*" onchange="app.handleOptionImageUpload(2, event)" class="text-[10px] text-slate-500 cursor-pointer">
+                            </div>
+                            <div id="option-img-preview-container-2" class="pl-8 hidden">
+                                <img id="option-img-preview-2" class="h-16 rounded-xl object-contain border-2 border-pink-300">
+                                <button type="button" onclick="app.removeOptionImage(2)" class="text-rose-500 text-xs font-black ml-2 hover:underline">Hapus Gambar</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3.5 rounded-2xl border-2 border-pink-200 space-y-2 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="correct-mc" value="3" class="w-5 h-5 text-pink-600 cursor-pointer">
+                                <span class="font-black text-sm text-pink-700 w-6">D.</span>
+                                <input type="text" id="option-3" placeholder="Teks Pilihan D" class="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold bg-white focus:border-pink-500 focus:outline-none">
+                            </div>
+                            <div class="flex items-center gap-2 pl-8">
+                                <label class="text-[11px] font-black text-slate-500"><i class="fa-solid fa-image text-indigo-500"></i> Gambar D:</label>
+                                <input type="file" id="option-img-3" accept="image/*" onchange="app.handleOptionImageUpload(3, event)" class="text-[10px] text-slate-500 cursor-pointer">
+                            </div>
+                            <div id="option-img-preview-container-3" class="pl-8 hidden">
+                                <img id="option-img-preview-3" class="h-16 rounded-xl object-contain border-2 border-pink-300">
+                                <button type="button" onclick="app.removeOptionImage(3)" class="text-rose-500 text-xs font-black ml-2 hover:underline">Hapus Gambar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Isian Singkat Container -->
+                <div id="sa-answer-container" class="space-y-2 hidden bg-sky-50 p-4 rounded-3xl border-2 border-sky-200 shadow-inner">
+                    <label class="block text-xs font-black text-sky-800">✍️ Kunci Jawaban Isian Singkat</label>
+                    <input type="text" id="sa-answer-input" placeholder="Jawaban yang benar..." class="w-full px-4 py-3 rounded-2xl border-2 border-sky-200 text-sm font-semibold bg-white shadow-inner focus:outline-none focus:border-sky-500">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t-2 border-pink-100">
+                    <button type="button" onclick="app.closeQuestionModal()" class="px-5 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-xs cursor-pointer">Batal</button>
+                    <button type="submit" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs shadow-lg transform active:scale-95 transition">✨ Simpan Soal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        class QuizApp {
+            constructor() {
+                this.isAdminMode = true;
+                this.currentView = 'home';
+                this.selectedGrade = null;
+                this.selectedFolder = null;
+                this.editingFolderId = null;
+                this.editingQuestionId = null;
+
+                this.tempFolderImage = null;
+                this.tempQuestionImage = null;
+                this.tempOptionImages = ['', '', '', ''];
+
+                this.currentQuizQuestions = [];
+                this.currentQuizIndex = 0;
+                this.userAnswers = {};
+                this.quizScore = 0;
+
+                this.loadData();
+                this.initImageListeners();
+            }
+
+            loadData() {
+                const saved = localStorage.getItem('habel_kidz_db_v6');
+                if (saved) {
+                    try {
+                        this.db = JSON.parse(saved);
+                        return;
+                    } catch (e) {
+                        console.error("Failed to parse DB", e);
+                    }
+                }
+
+                this.db = {};
+                for (let i = 1; i <= 6; i++) {
+                    this.db[`sd_${i}`] = {
+                        name: `Kelas ${i} SD`,
+                        folders: [
+                            {
+                                id: `folder_${i}_1`,
+                                title: `Matematika Ceria Kelas ${i}`,
+                                material: `🌟 Selamat datang di materi Matematika Kelas ${i} SD! Mari belajar berhitung dengan gembira dan penuh warna bersama Habel Kidz.`,
+                                materialImage: '',
+                                questions: [
+                                    {
+                                        id: `q_${i}_1`,
+                                        type: 'mc',
+                                        text: `Berapakah hasil dari 5 + ${i} ?`,
+                                        image: '',
+                                        options: [`${5+i}`, `${4+i}`, `${6+i}`, `${3+i}`],
+                                        optionImages: ['', '', '', ''],
+                                        correct: 0
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+                }
+
+                for (let i = 1; i <= 3; i++) {
+                    let smpClass = i + 6;
+                    this.db[`smp_${i}`] = {
+                        name: `Kelas ${smpClass} SMP (Kelas ${i})`,
+                        folders: [
+                            {
+                                id: `folder_smp_${i}_1`,
+                                title: `IPA Seru Kelas ${smpClass}`,
+                                material: `🚀 Pelajaran Ilmu Pengetahuan Alam (IPA) interaktif untuk tingkat SMP Kelas ${smpClass}. Mari eksplorasi alam semesta!`,
+                                materialImage: '',
+                                questions: [
+                                    {
+                                        id: `q_smp_${i}_1`,
+                                        type: 'mc',
+                                        text: `Pusat tata surya kita adalah ...`,
+                                        image: '',
+                                        options: ['Matahari', 'Bumi', 'Bulan', 'Mars'],
+                                        optionImages: ['', '', '', ''],
+                                        correct: 0
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+                }
+                this.saveData();
+            }
+
+            saveData() {
+                localStorage.setItem('habel_kidz_db_v6', JSON.stringify(this.db));
+            }
+
+            initImageListeners() {
+                setTimeout(() => {
+                    const folderImgInput = document.getElementById('folder-image-input');
+                    if (folderImgInput) {
+                        folderImgInput.onchange = (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                                this.compressImage(file, (compressedBase64) => {
+                                    this.tempFolderImage = compressedBase64;
+                                    const preview = document.getElementById('folder-image-preview');
+                                    const container = document.getElementById('folder-image-preview-container');
+                                    if (preview && container) {
+                                        preview.src = this.tempFolderImage;
+                                        container.classList.remove('hidden');
+                                    }
+                                });
+                            }
+                        };
+                    }
+
+                    const qImgInput = document.getElementById('question-image-input');
+                    if (qImgInput) {
+                        qImgInput.onchange = (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                                this.compressImage(file, (compressedBase64) => {
+                                    this.tempQuestionImage = compressedBase64;
+                                    const preview = document.getElementById('question-image-preview');
+                                    const container = document.getElementById('question-image-preview-container');
+                                    if (preview && container) {
+                                        preview.src = this.tempQuestionImage;
+                                        container.classList.remove('hidden');
+                                    }
+                                });
+                            }
+                        };
+                    }
+                }, 200);
+            }
+
+            handleOptionImageUpload(index, event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.compressImage(file, (compressedBase64) => {
+                        this.tempOptionImages[index] = compressedBase64;
+                        const preview = document.getElementById(`option-img-preview-${index}`);
+                        const container = document.getElementById(`option-img-preview-container-${index}`);
+                        if (preview && container) {
+                            preview.src = compressedBase64;
+                            container.classList.remove('hidden');
+                        }
+                    });
+                }
+            }
+
+            removeOptionImage(index) {
+                this.tempOptionImages[index] = '';
+                const container = document.getElementById(`option-img-preview-container-${index}`);
+                const fileInput = document.getElementById(`option-img-${index}`);
+                if (container) container.classList.add('hidden');
+                if (fileInput) fileInput.value = '';
+            }
+
+            compressImage(file, callback) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 500;
+                        const MAX_HEIGHT = 500;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        callback(canvas.toDataURL('image/jpeg', 0.65));
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toast-message');
+                const toastIcon = document.getElementById('toast-icon');
+                
+                toastMsg.innerText = message;
+                if (type === 'success') {
+                    toast.className = "fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-2xl font-black text-sm text-white flex items-center gap-3 bg-emerald-500 border-2 border-white";
+                    toastIcon.className = "fa-solid fa-circle-check text-lg";
+                } else {
+                    toast.className = "fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-2xl font-black text-sm text-white flex items-center gap-3 bg-rose-500 border-2 border-white";
+                    toastIcon.className = "fa-solid fa-circle-exclamation text-lg";
+                }
+
+                setTimeout(() => {
+                    toast.className = "fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl shadow-2xl font-black text-sm text-white flex items-center gap-3";
+                }, 3000);
+            }
+
+            toggleAdminMode() {
+                this.isAdminMode = !this.isAdminMode;
+                const btn = document.getElementById('admin-mode-btn');
+                const text = document.getElementById('admin-mode-text');
+                if (this.isAdminMode) {
+                    btn.className = "px-4 py-2.5 rounded-2xl text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer bg-amber-400 hover:bg-amber-500 text-slate-900 border-2 border-amber-300";
+                    text.innerText = "Mode Guru: Aktif";
+                    this.showToast("Mode Guru diaktifkan! ✨", "success");
+                } else {
+                    btn.className = "px-4 py-2.5 rounded-2xl text-xs font-black shadow-md transition flex items-center gap-2 cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700 border-2 border-slate-300";
+                    text.innerText = "Mode Guru: Nonaktif";
+                    this.showToast("Mode Guru dinonaktifkan.", "success");
+                }
+                this.render();
+            }
+
+            goHome() {
+                this.currentView = 'home';
+                this.selectedGrade = null;
+                this.selectedFolder = null;
+                this.render();
+            }
+
+            selectGrade(gradeKey) {
+                this.selectedGrade = gradeKey;
+                this.currentView = 'folders';
+                this.selectedFolder = null;
+                this.render();
+            }
+
+            openMaterial(folderId) {
+                this.selectedFolder = folderId;
+                this.currentView = 'material';
+                this.render();
+            }
+
+            render() {
+                const container = document.getElementById('app-content');
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (this.currentView === 'home') {
+                    container.innerHTML = this.renderHomeView();
+                } else if (this.currentView === 'folders') {
+                    container.innerHTML = this.renderFoldersView();
+                } else if (this.currentView === 'material') {
+                    container.innerHTML = this.renderMaterialView();
+                } else if (this.currentView === 'quiz') {
+                    container.innerHTML = this.renderQuizView();
+                } else if (this.currentView === 'result') {
+                    container.innerHTML = this.renderResultView();
+                }
+
+                this.initImageListeners();
+            }
+
+            renderHomeView() {
+                return `
+                    <div class="text-center mb-8">
+                        <span class="bg-white/30 text-white text-xs font-black px-5 py-2 rounded-full uppercase tracking-wider backdrop-blur-md border-2 border-white/60 shadow-md inline-flex items-center gap-2 bouncing-icon">
+                            <i class="fa-solid fa-face-smile text-amber-300 text-base"></i> Pilih Tingkatan Kelas Ceria Kamu!
+                        </span>
+                        <h2 class="text-3xl sm:text-5xl font-black text-white mt-4 drop-shadow-lg">Halo Teman-Teman! 🎈</h2>
+                        <p class="text-sky-100 text-sm sm:text-base font-semibold max-w-xl mx-auto mt-2 drop-shadow">Platform belajar interaktif, penuh warna, dan kuis seru untuk Sekolah Dasar (Kelas 1-6) & Sekolah Menengah Pertama (Kelas 7-9).</p>
+                    </div>
+
+                    <!-- Kategori SD -->
+                    <div class="mb-10">
+                        <div class="flex items-center gap-3 mb-4 bg-white/20 p-3 rounded-2xl backdrop-blur-sm border border-white/30 shadow">
+                            <div class="w-10 h-10 bg-amber-400 text-slate-900 rounded-2xl flex items-center justify-center font-black text-lg shadow bouncing-icon">
+                                <i class="fa-solid fa-child-reaching"></i>
+                            </div>
+                            <h3 class="text-xl font-black text-white drop-shadow">Sekolah Dasar (SD Kelas 1 - 6)</h3>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            ${[1,2,3,4,5,6].map(i => `
+                                <div onclick="app.selectGrade('sd_${i}')" class="bg-gradient-to-br from-white via-sky-50 to-pink-50 rounded-3xl p-5 shadow-xl hover:shadow-2xl transition transform hover:-translate-y-2 cursor-pointer text-center border-4 border-pink-300 flex flex-col items-center justify-center group floating-card">
+                                    <div class="w-16 h-16 bg-gradient-to-tr from-sky-400 to-indigo-500 text-white rounded-3xl flex items-center justify-center text-3xl font-black mb-3 group-hover:scale-110 transition shadow-md">
+                                        ${i}
+                                    </div>
+                                    <h4 class="font-black text-indigo-900 text-base">Kelas ${i} SD</h4>
+                                    <span class="text-[11px] font-extrabold text-pink-600 mt-1 bg-pink-100 px-2.5 py-0.5 rounded-full">${this.db[`sd_${i}`]?.folders?.length || 0} Materi</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Kategori SMP -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-4 bg-white/20 p-3 rounded-2xl backdrop-blur-sm border border-white/30 shadow">
+                            <div class="w-10 h-10 bg-indigo-500 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow bouncing-icon">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <h3 class="text-xl font-black text-white drop-shadow">Sekolah Menengah Pertama (SMP Kelas 7 - 9)</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            ${[1,2,3].map(i => {
+                                const smpClass = i + 6;
+                                return `
+                                    <div onclick="app.selectGrade('smp_${i}')" class="bg-gradient-to-r from-white via-indigo-50 to-purple-50 rounded-3xl p-5 shadow-xl hover:shadow-2xl transition transform hover:-translate-y-2 cursor-pointer border-4 border-indigo-300 flex items-center justify-between group floating-card">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white rounded-3xl flex items-center justify-center text-2xl font-black group-hover:scale-110 transition shadow-md">
+                                                ${smpClass}
+                                            </div>
+                                            <div>
+                                                <h4 class="font-black text-indigo-900 text-lg">Kelas ${smpClass} SMP</h4>
+                                                <p class="text-xs font-bold text-purple-600 mt-1 bg-purple-100 px-2 py-0.5 rounded-full inline-block">${this.db[`smp_${i}`]?.folders?.length || 0} Materi Pelajaran</p>
+                                            </div>
+                                        </div>
+                                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition shadow">
+                                            <i class="fa-solid fa-arrow-right text-base font-black"></i>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderFoldersView() {
+                const gradeData = this.db[this.selectedGrade];
+                if (!gradeData) return this.goHome();
+
+                let html = `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-white/20 backdrop-blur-md p-4 rounded-3xl border-2 border-white/50 shadow-xl">
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="app.goHome()" class="w-11 h-11 bg-white text-indigo-600 rounded-2xl shadow-lg font-black flex items-center justify-center hover:bg-indigo-50 transition cursor-pointer text-lg">
+                                <i class="fa-solid fa-house"></i>
+                            </button>
+                            <div>
+                                <h2 class="text-2xl font-black text-white drop-shadow">${gradeData.name} 🌈</h2>
+                                <p class="text-xs font-bold text-sky-100">Pilih materi seru atau asah otak dengan kuis berwarna!</p>
+                            </div>
+                        </div>
+                `;
+
+                if (this.isAdminMode) {
+                    html += `
+                        <button type="button" onclick="app.openFolderModal()" class="px-5 py-3 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-slate-900 font-black rounded-2xl shadow-lg transition flex items-center gap-2 text-sm cursor-pointer border-2 border-emerald-300">
+                            <i class="fa-solid fa-folder-plus text-base"></i> + Tambah Materi Baru
+                        </button>
+                    `;
+                }
+
+                html += `</div>`;
+
+                if (!gradeData.folders || gradeData.folders.length === 0) {
+                    html += `
+                        <div class="bg-white/95 backdrop-blur rounded-3xl p-10 text-center shadow-2xl max-w-md mx-auto border-4 border-pink-300">
+                            <div class="w-20 h-20 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center mx-auto text-3xl mb-4 shadow bouncing-icon">
+                                <i class="fa-solid fa-face-sad-tear"></i>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800">Belum Ada Materi di Kelas Ini</h3>
+                            <p class="text-xs font-semibold text-slate-500 mt-1 mb-4">Aktifkan "Mode Guru" di atas untuk menambahkan materi dan soal kuis baru.</p>
+                            ${this.isAdminMode ? `<button type="button" onclick="app.openFolderModal()" class="px-5 py-3 bg-sky-500 text-white font-black rounded-2xl shadow-lg cursor-pointer">+ Tambah Materi Sekarang</button>` : ''}
+                        </div>
+                    `;
+                } else {
+                    html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">`;
+                    gradeData.folders.forEach(folder => {
+                        const qCount = folder.questions ? folder.questions.length : 0;
+                        html += `
+                            <div class="bg-gradient-to-br from-white via-sky-50 to-purple-50 rounded-3xl p-6 shadow-xl border-4 border-sky-300 flex flex-col justify-between hover:shadow-2xl transition group relative">
+                                <div>
+                                    <div class="flex justify-between items-start gap-2">
+                                        <div class="w-14 h-14 bg-gradient-to-tr from-pink-400 to-amber-400 text-white rounded-3xl flex items-center justify-center text-2xl font-black shadow-md bouncing-icon">
+                                            <i class="fa-solid fa-book-open-reader"></i>
+                                        </div>
+                                        ${this.isAdminMode ? `
+                                            <div class="flex gap-1.5 z-20">
+                                                <button type="button" onclick="app.openFolderModal('${folder.id}')" class="px-3 py-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black rounded-xl shadow transition text-xs flex items-center gap-1 cursor-pointer border border-amber-300">
+                                                    <i class="fa-solid fa-pen"></i> Edit
+                                                </button>
+                                                <button type="button" onclick="app.deleteFolder('${folder.id}')" class="px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl shadow transition text-xs flex items-center gap-1 cursor-pointer border border-rose-300">
+                                                    <i class="fa-solid fa-trash"></i> Hapus
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <h3 class="font-black text-indigo-900 text-lg mt-4 group-hover:text-pink-600 transition">${folder.title}</h3>
+                                    <p class="text-xs font-semibold text-slate-600 mt-2 line-clamp-2">${folder.material || 'Tidak ada ringkasan materi.'}</p>
+                                </div>
+
+                                <div class="mt-6 pt-4 border-t-2 border-sky-100 flex items-center justify-between">
+                                    <span class="text-xs font-black bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full shadow-sm">
+                                        <i class="fa-solid fa-list-check"></i> ${qCount} Soal Kuis
+                                    </span>
+                                    <div class="flex gap-2">
+                                        <button type="button" onclick="app.openMaterial('${folder.id}')" class="px-3.5 py-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-black rounded-2xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                            <i class="fa-solid fa-book-open"></i> Materi
+                                        </button>
+                                        <button type="button" onclick="app.startQuiz('${folder.id}', false)" class="px-3.5 py-2.5 bg-sky-100 hover:bg-sky-200 text-sky-700 font-black rounded-2xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Mulai Urut Normal">
+                                            <i class="fa-solid fa-play"></i> Kuis
+                                        </button>
+                                        <button type="button" onclick="app.startQuiz('${folder.id}', true)" class="px-4 py-2.5 bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-black rounded-2xl text-xs shadow-lg transition flex items-center gap-1.5 cursor-pointer" title="Mulai dengan Soal Diacak">
+                                            <i class="fa-solid fa-shuffle"></i> Soal Acak 🎲
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                return html;
+            }
+
+            renderMaterialView() {
+                const gradeData = this.db[this.selectedGrade];
+                if (!gradeData) return this.goHome();
+                const folder = gradeData.folders.find(f => f.id === this.selectedFolder);
+                if (!folder) return this.selectGrade(this.selectedGrade);
+
+                let html = `
+                    <div class="bg-gradient-to-br from-white via-sky-50 to-purple-50 rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-indigo-300">
+                        <div class="flex justify-between items-center mb-6 pb-4 border-b-2 border-purple-100">
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="app.selectGrade('${this.selectedGrade}')" class="w-11 h-11 bg-purple-100 text-purple-700 rounded-2xl font-black flex items-center justify-center hover:bg-purple-200 transition cursor-pointer text-lg shadow">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </button>
+                                <div>
+                                    <span class="text-xs font-black text-pink-600 uppercase tracking-wider">${gradeData.name}</span>
+                                    <h2 class="text-2xl font-black text-indigo-900">${folder.title} 🎈</h2>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="app.startQuiz('${folder.id}', false)" class="px-4 py-3 bg-sky-100 hover:bg-sky-200 text-sky-800 font-black rounded-2xl shadow transition flex items-center gap-2 text-xs cursor-pointer">
+                                    <i class="fa-solid fa-play"></i> Mulai Kuis
+                                </button>
+                                <button type="button" onclick="app.startQuiz('${folder.id}', true)" class="px-5 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white font-black rounded-2xl shadow-xl hover:shadow-2xl transition flex items-center gap-2 text-xs cursor-pointer transform active:scale-95">
+                                    <i class="fa-solid fa-shuffle"></i> Soal Acak 🎲
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="prose max-w-none mb-8 bg-white p-6 rounded-3xl border-3 border-sky-200 shadow-inner">
+                            <p class="text-slate-700 font-semibold text-base sm:text-lg whitespace-pre-line leading-relaxed">${folder.material || 'Tidak ada isi materi.'}</p>
+                            ${folder.materialImage ? `<div class="mt-4"><img src="${folder.materialImage}" class="max-h-85 rounded-2xl object-contain border-4 border-pink-300 shadow-md mx-auto"></div>` : ''}
+                        </div>
+
+                        <!-- Daftar Soal Kuis di Materi -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-black text-indigo-900 text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-gamepad text-pink-500"></i> Daftar Soal Kuis (${folder.questions ? folder.questions.length : 0})
+                            </h3>
+                            ${this.isAdminMode ? `
+                                <button type="button" onclick="app.openQuestionModal()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-900 font-black rounded-2xl shadow transition text-xs flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-plus-circle text-sm"></i> + Tambah Soal
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <div class="space-y-4">
+                            ${(!folder.questions || folder.questions.length === 0) ? `
+                                <div class="bg-white/80 p-6 rounded-2xl text-center text-slate-500 font-semibold text-sm">Belum ada soal pada materi ini. Silakan tambahkan soal melalui Mode Guru.</div>
+                            ` : folder.questions.map((q, qIdx) => `
+                                <div class="bg-white p-5 rounded-3xl border-3 border-indigo-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-700 font-black flex items-center justify-center shrink-0 text-sm shadow">
+                                            ${qIdx + 1}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-sm sm:text-base">${q.text}</p>
+                                            ${q.image ? `<img src="${q.image}" class="h-20 rounded-xl object-contain border-2 border-pink-200 mt-2">` : ''}
+                                            <div class="text-xs font-semibold text-purple-700 mt-1">
+                                                Tipe: ${q.type === 'mc' ? 'Pilihan Ganda ✨' : 'Isian Singkat ✍️'} &bull; Kunci: <span class="font-black">${q.type === 'mc' ? String.fromCharCode(65 + q.correct) + '. ' + (q.options[q.correct] || '') : q.correct}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    ${this.isAdminMode ? `
+                                        <div class="flex gap-2 shrink-0">
+                                            <button type="button" onclick="app.openQuestionModal('${q.id}')" class="px-3 py-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black rounded-xl text-xs shadow flex items-center gap-1 cursor-pointer">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </button>
+                                            <button type="button" onclick="app.deleteQuestion('${q.id}')" class="px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl text-xs shadow flex items-center gap-1 cursor-pointer">
+                                                <i class="fa-solid fa-trash"></i> Hapus
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                return html;
+            }
+
+            startQuiz(folderId, shuffle = false) {
+                const gradeData = this.db[this.selectedGrade];
+                if (!gradeData) return;
+                const folder = gradeData.folders.find(f => f.id === folderId);
+                if (!folder || !folder.questions || folder.questions.length === 0) {
+                    this.showToast("Belum ada soal kuis pada materi ini!", "error");
+                    return;
+                }
+
+                // Deep copy and process questions
+                let qs = folder.questions.map(q => {
+                    let newQ = JSON.parse(JSON.stringify(q));
+                    // Shuffle options if it's multiple choice
+                    if (newQ.type === 'mc' && newQ.options && newQ.options.length > 0) {
+                        let combined = newQ.options.map((opt, idx) => ({
+                            option: opt,
+                            image: newQ.optionImages && newQ.optionImages[idx] ? newQ.optionImages[idx] : '',
+                            isCorrect: idx === newQ.correct
+                        }));
+
+                        // Shuffle combined array
+                        for (let i = combined.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [combined[i], combined[j]] = [combined[j], combined[i]];
+                        }
+
+                        newQ.options = combined.map(item => item.option);
+                        newQ.optionImages = combined.map(item => item.image);
+                        newQ.correct = combined.findIndex(item => item.isCorrect);
+                    }
+                    return newQ;
+                });
+
+                if (shuffle) {
+                    for (let i = qs.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [qs[i], qs[j]] = [qs[j], qs[i]];
+                    }
+                    this.showToast("Soal & Pilihan Jawaban berhasil diacak! 🎲✨", "success");
+                } else {
+                    this.showToast("Pilihan jawaban berhasil diacak untuk latihan seru! 🔀", "success");
+                }
+
+                this.selectedFolder = folderId;
+                this.currentQuizQuestions = qs;
+                this.currentQuizIndex = 0;
+                this.userAnswers = {};
+                this.quizScore = 0;
+                this.currentView = 'quiz';
+                this.render();
+            }
+
+            renderQuizView() {
+                const q = this.currentQuizQuestions[this.currentQuizIndex];
+                const total = this.currentQuizQuestions.length;
+                const currentAnswer = this.userAnswers[this.currentQuizIndex] !== undefined ? this.userAnswers[this.currentQuizIndex] : '';
+
+                return `
+                    <div class="bg-gradient-to-br from-white via-indigo-50 to-pink-50 rounded-3xl p-6 md:p-8 shadow-2xl max-w-2xl mx-auto w-full border-4 border-pink-300">
+                        <div class="flex justify-between items-center mb-6 pb-3 border-b-2 border-indigo-100">
+                            <button type="button" onclick="app.openMaterial('${this.selectedFolder}')" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-black text-xs cursor-pointer shadow">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> Keluar Kuis
+                            </button>
+                            <span class="text-xs font-black bg-pink-100 text-pink-700 px-4 py-1.5 rounded-full shadow-sm">
+                                Soal ${this.currentQuizIndex + 1} dari ${total}
+                            </span>
+                        </div>
+
+                        <!-- Pertanyaan Kuis -->
+                        <div class="mb-6">
+                            <h3 class="font-black text-slate-800 text-lg sm:text-xl mb-3">${q.text}</h3>
+                            ${q.image ? `<img src="${q.image}" class="h-44 rounded-2xl object-contain border-4 border-indigo-200 shadow-md mx-auto mb-4">` : ''}
+                        </div>
+
+                        <!-- Opsi Jawaban -->
+                        <div class="space-y-3.5 mb-8">
+                            ${q.type === 'mc' ? q.options.map((opt, idx) => {
+                                const optImg = q.optionImages && q.optionImages[idx] ? q.optionImages[idx] : '';
+                                const isSelected = currentAnswer === idx;
+                                
+                                let btnStyle = 'border-indigo-200 hover:border-pink-300 hover:bg-white bg-white text-slate-700';
+                                let badgeStyle = 'bg-indigo-100 text-indigo-700';
+                                
+                                if (isSelected) {
+                                    btnStyle = 'border-pink-500 bg-pink-50 text-pink-900 shadow-lg scale-[1.01] ring-2 ring-pink-300';
+                                    badgeStyle = 'bg-pink-600 text-white';
+                                }
+
+                                return `
+                                    <button type="button" onclick="app.answerQuiz(${idx})" class="w-full p-4 rounded-3xl border-3 text-left font-black text-sm transition flex items-start gap-3.5 cursor-pointer shadow-sm ${btnStyle}">
+                                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 shadow ${badgeStyle}">
+                                            ${String.fromCharCode(65 + idx)}
+                                        </div>
+                                        <div class="flex-1">
+                                            ${opt ? `<div class="mb-1 text-base">${opt}</div>` : ''}
+                                            ${optImg ? `<img src="${optImg}" class="h-20 rounded-2xl object-contain border-2 border-pink-200 mt-1 shadow-sm">` : ''}
+                                        </div>
+                                        ${isSelected ? `<div class="text-pink-600 text-xl font-black self-center"><i class="fa-solid fa-circle-check"></i></div>` : ''}
+                                    </button>
+                                `;
+                            }).join('') : `
+                                <div class="bg-white p-4 rounded-3xl border-3 border-indigo-200 shadow-sm">
+                                    <input type="text" id="sa-user-answer" value="${currentAnswer}" oninput="app.answerQuiz(this.value)" placeholder="Ketik jawaban singkatmu di sini..." class="w-full px-5 py-3.5 rounded-2xl border-2 border-indigo-200 focus:border-indigo-600 focus:outline-none text-sm font-bold bg-indigo-50/50">
+                                </div>
+                            `}
+                        </div>
+
+                        <!-- Navigasi Kuis -->
+                        <div class="flex justify-between items-center pt-4 border-t-2 border-indigo-100">
+                            <button type="button" onclick="app.prevQuizQuestion()" ${this.currentQuizIndex === 0 ? 'disabled class="opacity-50 cursor-not-allowed px-4 py-2.5 bg-slate-200 text-slate-500 font-black rounded-2xl text-xs"' : 'class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black rounded-2xl text-xs cursor-pointer shadow"'}>
+                                <i class="fa-solid fa-arrow-left mr-1"></i> Sebelumnya
+                            </button>
+                            
+                            ${this.currentQuizIndex < total - 1 ? `
+                                <button type="button" onclick="app.nextQuizQuestion()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs shadow-lg cursor-pointer">
+                                    Selanjutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            ` : `
+                                <button type="button" onclick="app.finishQuiz()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs shadow-lg cursor-pointer animate-pulse">
+                                    Selesai & Lihat Hasil <i class="fa-solid fa-flag-checkered ml-1"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }
+
+            answerQuiz(val) {
+                this.userAnswers[this.currentQuizIndex] = val;
+                this.render();
+            }
+
+            prevQuizQuestion() {
+                if (this.currentQuizIndex > 0) {
+                    this.currentQuizIndex--;
+                    this.render();
+                }
+            }
+
+            nextQuizQuestion() {
+                if (this.currentQuizIndex < this.currentQuizQuestions.length - 1) {
+                    this.currentQuizIndex++;
+                    this.render();
+                }
+            }
+
+            finishQuiz() {
+                let score = 0;
+                this.currentQuizQuestions.forEach((q, idx) => {
+                    const ans = this.userAnswers[idx];
+                    if (q.type === 'mc' && ans === q.correct) {
+                        score += 100 / this.currentQuizQuestions.length;
+                    } else if (q.type === 'sa' && typeof ans === 'string' && ans.trim().toLowerCase() === q.correct.trim().toLowerCase()) {
+                        score += 100 / this.currentQuizQuestions.length;
+                    }
+                });
+
+                this.quizScore = Math.round(score);
+                this.currentView = 'result';
+                this.render();
+            }
+
+            renderResultView() {
+                let badgeColor = "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-900";
+                let badgeText = "Hebat Sekali! Luar Biasa Pintar! 🎉";
+                if (this.quizScore < 60) {
+                    badgeColor = "bg-gradient-to-r from-rose-400 to-pink-500 text-white";
+                    badgeText = "Tetap Semangat Belajar! Coba Lagi Ya! 💪";
+                } else if (this.quizScore < 85) {
+                    badgeColor = "bg-gradient-to-r from-amber-400 to-orange-400 text-slate-900";
+                    badgeText = "Bagus Sekali! Pertahankan Prestasimu! 🌟";
+                }
+
+                return `
+                    <div class="bg-gradient-to-br from-white via-indigo-50 to-pink-50 rounded-3xl p-6 md:p-8 shadow-2xl max-w-2xl mx-auto w-full border-4 border-emerald-400">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-gradient-to-tr from-amber-300 to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto text-3xl mb-3 shadow-lg bouncing-icon">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-indigo-900">Hasil Kuis Selesai!</h2>
+                            <div class="my-4 bg-white p-5 rounded-3xl border-3 border-indigo-100 shadow-inner max-w-xs mx-auto">
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-wider">Nilai Akhir Kamu</span>
+                                <div class="text-6xl font-black text-indigo-600 mt-1">${this.quizScore}</div>
+                            </div>
+                            <div class="px-4 py-2.5 rounded-2xl text-xs font-black ${badgeColor} inline-block mb-6 shadow-md border-2 border-white">
+                                ${badgeText}
+                            </div>
+                        </div>
+
+                        <!-- Review Detail Jawaban Benar & Salah -->
+                        <div class="mb-6">
+                            <h3 class="font-black text-indigo-900 text-base mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-list text-pink-600"></i> Review Jawaban Kamu
+                            </h3>
+                            <div class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                                ${this.currentQuizQuestions.map((q, idx) => {
+                                    const ans = this.userAnswers[idx];
+                                    let isCorrect = false;
+                                    if (q.type === 'mc' && ans === q.correct) isCorrect = true;
+                                    if (q.type === 'sa' && typeof ans === 'string' && ans.trim().toLowerCase() === q.correct.trim().toLowerCase()) isCorrect = true;
+
+                                    return `
+                                        <div class="p-4 rounded-2xl border-3 ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'} shadow-sm">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-black px-2.5 py-0.5 rounded-lg ${isCorrect ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'}">
+                                                    Soal ${idx + 1} &bull; ${isCorrect ? 'Benar 🌟' : 'Salah ❌'}
+                                                </span>
+                                            </div>
+                                            <p class="font-bold text-xs md:text-sm text-slate-800 mb-2">${q.text}</p>
+                                            
+                                            ${q.type === 'mc' ? `
+                                                <div class="text-xs space-y-1 font-semibold">
+                                                    <div>Jawaban Kamu: <span class="font-black ${isCorrect ? 'text-emerald-700' : 'text-rose-600'}">${ans !== undefined ? `${String.fromCharCode(65 + ans)}. ${q.options[ans]}` : 'Tidak dijawab'}</span></div>
+                                                    ${!isCorrect ? `<div>Kunci Jawaban: <span class="font-black text-emerald-700">${String.fromCharCode(65 + q.correct)}. ${q.options[q.correct]}</span></div>` : ''}
+                                                </div>
+                                            ` : `
+                                                <div class="text-xs space-y-1 font-semibold">
+                                                    <div>Jawaban Kamu: <span class="font-black ${isCorrect ? 'text-emerald-700' : 'text-rose-600'}">${ans || 'Tidak dijawab'}</span></div>
+                                                    ${!isCorrect ? `<div>Kunci Jawaban: <span class="font-black text-emerald-700">${q.correct}</span></div>` : ''}
+                                                </div>
+                                            `}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t-2 border-indigo-100">
+                            <button type="button" onclick="app.startQuiz('${this.selectedFolder}', false)" class="flex-1 py-3.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black rounded-2xl shadow-lg transition cursor-pointer text-xs">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Ulangi Kuis
+                            </button>
+                            <button type="button" onclick="app.startQuiz('${this.selectedFolder}', true)" class="flex-1 py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-black rounded-2xl shadow-lg transition cursor-pointer text-xs">
+                                <i class="fa-solid fa-shuffle mr-1"></i> Ulangi (Acak Soal)
+                            </button>
+                            <button type="button" onclick="app.openMaterial('${this.selectedFolder}')" class="flex-1 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black rounded-2xl transition cursor-pointer text-xs shadow">
+                                Kembali ke Materi
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            openFolderModal(folderId = null) {
+                this.editingFolderId = folderId;
+                this.tempFolderImage = null;
+                const modal = document.getElementById('folder-modal');
+                const titleEl = document.getElementById('folder-modal-title');
+                const titleInput = document.getElementById('folder-title-input');
+                const materialInput = document.getElementById('folder-material-input');
+                const imgInput = document.getElementById('folder-image-input');
+                const previewContainer = document.getElementById('folder-image-preview-container');
+                const previewImg = document.getElementById('folder-image-preview');
+
+                if (folderId) {
+                    const gradeData = this.db[this.selectedGrade];
+                    const folder = gradeData.folders.find(f => f.id === folderId);
+                    if (folder) {
+                        titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square text-pink-500"></i> Edit Materi';
+                        titleInput.value = folder.title;
+                        materialInput.value = folder.material;
+                        this.tempFolderImage = folder.materialImage || null;
+                        if (this.tempFolderImage) {
+                            previewImg.src = this.tempFolderImage;
+                            previewContainer.classList.remove('hidden');
+                        } else {
+                            previewContainer.classList.add('hidden');
+                        }
+                    }
+                } else {
+                    titleEl.innerHTML = '<i class="fa-solid fa-book-bookmark text-pink-500"></i> Tambah Materi Baru';
+                    titleInput.value = '';
+                    materialInput.value = '';
+                    imgInput.value = '';
+                    previewContainer.classList.add('hidden');
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            closeFolderModal() {
+                document.getElementById('folder-modal').classList.add('hidden');
+            }
+
+            saveFolder(event) {
+                event.preventDefault();
+                const title = document.getElementById('folder-title-input').value.trim();
+                const material = document.getElementById('folder-material-input').value.trim();
+                const gradeData = this.db[this.selectedGrade];
+
+                if (!gradeData.folders) gradeData.folders = [];
+
+                if (this.editingFolderId) {
+                    const folder = gradeData.folders.find(f => f.id === this.editingFolderId);
+                    if (folder) {
+                        folder.title = title;
+                        folder.material = material;
+                        folder.materialImage = this.tempFolderImage || folder.materialImage || '';
+                    }
+                    this.showToast("Materi berhasil diperbarui! ✨", "success");
+                } else {
+                    const newFolder = {
+                        id: 'folder_' + Date.now(),
+                        title: title,
+                        material: material,
+                        materialImage: this.tempFolderImage || '',
+                        questions: []
+                    };
+                    gradeData.folders.push(newFolder);
+                    this.showToast("Materi baru berhasil ditambahkan! 📚", "success");
+                }
+
+                this.saveData();
+                this.closeFolderModal();
+                this.render();
+            }
+
+            deleteFolder(folderId) {
+                this.showConfirm("Hapus Materi?", "Apakah Anda yakin ingin menghapus materi ini beserta seluruh soal kuis di dalamnya?", () => {
+                    const gradeData = this.db[this.selectedGrade];
+                    gradeData.folders = gradeData.folders.filter(f => f.id !== folderId);
+                    this.saveData();
+                    this.showToast("Materi berhasil dihapus.", "success");
+                    this.render();
+                });
+            }
+
+            openQuestionModal(questionId = null) {
+                this.editingQuestionId = questionId;
+                this.tempQuestionImage = null;
+                this.tempOptionImages = ['', '', '', ''];
+
+                const modal = document.getElementById('question-modal');
+                const titleEl = document.getElementById('question-modal-title');
+                const typeInput = document.getElementById('question-type-input');
+                const textInput = document.getElementById('question-text-input');
+                const qImgInput = document.getElementById('question-image-input');
+                const qPreviewContainer = document.getElementById('question-image-preview-container');
+                const qPreviewImg = document.getElementById('question-image-preview');
+
+                if (questionId) {
+                    const gradeData = this.db[this.selectedGrade];
+                    const folder = gradeData.folders.find(f => f.id === this.selectedFolder);
+                    const q = folder.questions.find(item => item.id === questionId);
+                    if (q) {
+                        titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-500"></i> Edit Soal Kuis';
+                        typeInput.value = q.type;
+                        textInput.value = q.text;
+                        this.tempQuestionImage = q.image || null;
+                        if (this.tempQuestionImage) {
+                            qPreviewImg.src = this.tempQuestionImage;
+                            qPreviewContainer.classList.remove('hidden');
+                        } else {
+                            qPreviewContainer.classList.add('hidden');
+                        }
+
+                        if (q.type === 'mc') {
+                            for (let i = 0; i < 4; i++) {
+                                document.getElementById(`option-${i}`).value = q.options[i] || '';
+                                this.tempOptionImages[i] = q.optionImages && q.optionImages[i] ? q.optionImages[i] : '';
+                                const optPreviewContainer = document.getElementById(`option-img-preview-container-${i}`);
+                                const optPreviewImg = document.getElementById(`option-img-preview-${i}`);
+                                if (this.tempOptionImages[i]) {
+                                    optPreviewImg.src = this.tempOptionImages[i];
+                                    optPreviewContainer.classList.remove('hidden');
+                                } else {
+                                    optPreviewContainer.classList.add('hidden');
+                                }
+                            }
+                            const radios = document.querySelectorAll('input[name="correct-mc"]');
+                            radios.forEach(r => {
+                                if (parseInt(r.value) === q.correct) r.checked = true;
+                            });
+                        } else {
+                            document.getElementById('sa-answer-input').value = q.correct || '';
+                        }
+                    }
+                } else {
+                    titleEl.innerHTML = '<i class="fa-solid fa-gamepad text-indigo-500"></i> Tambah Soal Kuis';
+                    typeInput.value = 'mc';
+                    textInput.value = '';
+                    qImgInput.value = '';
+                    qPreviewContainer.classList.add('hidden');
+                    for (let i = 0; i < 4; i++) {
+                        document.getElementById(`option-${i}`).value = '';
+                        document.getElementById(`option-img-${i}`).value = '';
+                        document.getElementById(`option-img-preview-container-${i}`).classList.add('hidden');
+                    }
+                    document.getElementById('sa-answer-input').value = '';
+                }
+
+                this.toggleQuestionTypeFields();
+                modal.classList.remove('hidden');
+            }
+
+            closeQuestionModal() {
+                document.getElementById('question-modal').classList.add('hidden');
+            }
+
+            toggleQuestionTypeFields() {
+                const type = document.getElementById('question-type-input').value;
+                const mcContainer = document.getElementById('mc-options-container');
+                const saContainer = document.getElementById('sa-answer-container');
+                if (type === 'mc') {
+                    mcContainer.classList.remove('hidden');
+                    saContainer.classList.add('hidden');
+                } else {
+                    mcContainer.classList.add('hidden');
+                    saContainer.classList.remove('hidden');
+                }
+            }
+
+            saveQuestion(event) {
+                event.preventDefault();
+                const type = document.getElementById('question-type-input').value;
+                const text = document.getElementById('question-text-input').value.trim();
+                const gradeData = this.db[this.selectedGrade];
+                const folder = gradeData.folders.find(f => f.id === this.selectedFolder);
+
+                if (!folder.questions) folder.questions = [];
+
+                let questionData = {
+                    id: this.editingQuestionId || ('q_' + Date.now()),
+                    type: type,
+                    text: text,
+                    image: this.tempQuestionImage || ''
+                };
+
+                if (type === 'mc') {
+                    const options = [];
+                    for (let i = 0; i < 4; i++) {
+                        options.push(document.getElementById(`option-${i}`).value.trim());
+                    }
+                    const correctRadio = document.querySelector('input[name="correct-mc"]:checked');
+                    const correctIdx = correctRadio ? parseInt(correctRadio.value) : 0;
+
+                    questionData.options = options;
+                    questionData.optionImages = [...this.tempOptionImages];
+                    questionData.correct = correctIdx;
+                } else {
+                    const saAnswer = document.getElementById('sa-answer-input').value.trim();
+                    questionData.correct = saAnswer;
+                }
+
+                if (this.editingQuestionId) {
+                    const idx = folder.questions.findIndex(q => q.id === this.editingQuestionId);
+                    if (idx !== -1) {
+                        folder.questions[idx] = questionData;
+                    }
+                    this.showToast("Soal berhasil diperbarui! ✨", "success");
+                } else {
+                    folder.questions.push(questionData);
+                    this.showToast("Soal baru berhasil ditambahkan! 🎮", "success");
+                }
+
+                this.saveData();
+                this.closeQuestionModal();
+                this.render();
+            }
+
+            deleteQuestion(questionId) {
+                this.showConfirm("Hapus Soal?", "Apakah Anda yakin ingin menghapus soal ini dari kuis?", () => {
+                    const gradeData = this.db[this.selectedGrade];
+                    const folder = gradeData.folders.find(f => f.id === this.selectedFolder);
+                    folder.questions = folder.questions.filter(q => q.id !== questionId);
+                    this.saveData();
+                    this.showToast("Soal berhasil dihapus.", "success");
+                    this.render();
+                });
+            }
+
+            showConfirm(title, message, onConfirm) {
+                const modal = document.getElementById('confirm-modal');
+                const titleEl = document.getElementById('confirm-modal-title');
+                const textEl = document.getElementById('confirm-modal-text');
+                const cancelBtn = document.getElementById('confirm-modal-cancel');
+                const submitBtn = document.getElementById('confirm-modal-submit');
+
+                titleEl.innerText = title;
+                textEl.innerText = message;
+                modal.classList.remove('hidden');
+
+                const newSubmit = submitBtn.cloneNode(true);
+                const newCancel = cancelBtn.cloneNode(true);
+                submitBtn.parentNode.replaceChild(newSubmit, submitBtn);
+                cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+                newSubmit.onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm();
+                };
+
+                newCancel.onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
+        }
+
+        // Initialize App
+        const app = new QuizApp();
+        window.onload = () => {
+            app.render();
+        };
+    </script>
+</body>
+</html>
